@@ -4,7 +4,7 @@
 
 # set variables; add personal project ID below
 export PROJECT_ID="ADD_PROJECT_ID_HERE"
-export VM_NAME="confidential-llm-vm"
+export VM_NAME="secure-llm-vm"
 export ZONE="us-central1-a"
 export MACHINE_TYPE="c3-standard-4"
 
@@ -33,10 +33,10 @@ gcloud compute ssh $VM_NAME --zone=$ZONE
 # # Commands for future uses:
 
 # # stop the VM
-# gcloud compute compute instances stop confidential-llm-vm --zone=us-central1-a
+# gcloud compute compute instances stop secure-llm-vm --zone=us-central1-a
 
 # # restart the to VM
-# gcloud compute compute instances reset confidential-llm-vm --zone=us-central1-a
+# gcloud compute compute instances reset secure-llm-vm --zone=us-central1-a
 
 # # connect back toto VM
-# gcloud compute ssh confidential-llm-vm --zone=us-central1-a
+# gcloud compute ssh secure-llm-vm --zone=us-central1-a
