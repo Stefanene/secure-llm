@@ -2,3 +2,9 @@ ipykernel
 google-genai
 json
 cryptography
+requests
+pysocks
+numpy
+stem
+presidio-anonymizer
+presidio-analyzer
