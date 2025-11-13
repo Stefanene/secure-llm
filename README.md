@@ -13,7 +13,7 @@ To download all the dependencies, use the provieded `requirements.txt` file as s
 ```
 python3 -m pip install -r requirements.txt
 ```
-Then, follow the setup guide below to deploy and use the model as currently built.
+Then, follow the setup guide below to deploy and use the system as currently built.
 
 ### 1. Setup Google Cloud Platform (GCP)
 Download Google Cloud SDK as follows (for macOS):
@@ -43,10 +43,9 @@ gcloud services enable confidentialcomputing.googleapis.com
 gcloud services enable secretmanager.googleapis.com
 ```
 
-Now we can use the VM by running the `setup.sh` script!
+Now we can use the VM by running the `setup.sh` script, which will automatically SSH into the newly created VM on GCP!
 
 ### 2. Inside the VM
-
 Run the setup script `gcp_setup.sh`.
 
 Then add the client code located in `securellm.py`.

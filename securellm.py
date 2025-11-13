@@ -2,9 +2,30 @@ import os
 import time
 import json
 import numpy as np
+import requests
 from google import genai
 from presidio_analyzer import AnalyzerEngine
 from presidio_anonymizer import AnonymizerEngine
+
+
+# >>>>>>>>>>  Tor network anonymizer <<<<<<<<<<
+class TorAnonymizer:
+    def __init__(self, socks_port: int = 9050, ctrl_port: int = 9051):
+        self.socks_port = socks_port
+        self.ctrl_port = ctrl_port
+        self.proxies = {
+            'http':f'socks5h://127.0.0.1:{socks_port}',
+            'https':f'socks5h://127.0.0.1:{socks_port}'
+        }
+        self.session = requests.Session()
+        self.session.proxies.update(self.proxies)
+
+        self.user_agents = [
+            'Mozilla/5.0 (Windows NT 10.0; rv:102.0) Gecko/20100101 Firefox/102.0',
+            'Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0) Gecko/20100101 Firefox/102.0',
+        ]
+
 
 
 # >>>>>>>>>>  SecureLLM client <<<<<<<<<<
