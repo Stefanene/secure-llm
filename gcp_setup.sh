@@ -55,6 +55,8 @@ pip install \
     cryptography \
     numpy \
     google-genai \
+    presidio-anonymizer \
+    presidio-analyzer \
     stem
 
 pip install 'requests[socks]'

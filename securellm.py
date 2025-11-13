@@ -3,6 +3,8 @@ import time
 import json
 import numpy as np
 from google import genai
+from presidio_analyzer import AnalyzerEngine
+from presidio_anonymizer import AnonymizerEngine
 
 
 # >>>>>>>>>>  SecureLLM client <<<<<<<<<<
@@ -14,16 +16,29 @@ class SecureLLMClient:
 
         print("[CLIENT] Initiliazed successfully")
 
+    def anonymize_query(self, query: str):
+        analyzer = AnalyzerEngine()
+        anonymizer = AnonymizerEngine()
+
+        print("[CLIENT] Anonymizing query contents")
+        analyzer_results = analyzer.analyze(text=query, language='en')
+        anonymized_text = anonymizer.anonymize(text=query, analyzer_results=analyzer_results).text
+        print("[CLIENT] Query PII anonymized successfully")
+
+        return anonymized_text
+
     def query_llm(self, query: str, use_pir: bool, anonymous: bool, num_dummies: int):
         print(f"\n[CLIENT] Processing: '{query[:50]}'")
 
         client = genai.Client(api_key=self.api_key)
 
+        processed_query = self.anonymize_query(query=query)
+
         response = client.models.generate_content(
             model="gemini-2.5-flash-lite",
-            contents=query,
+            contents=processed_query,
         )
-        
+
         print("[CLIENT] Query complete\n")
         return response
 
