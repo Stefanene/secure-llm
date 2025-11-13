@@ -54,6 +54,7 @@ pip install \
     pysocks \
     cryptography \
     numpy \
+    google-genai \
     stem
 
 pip install 'requests[socks]'
@@ -63,6 +64,6 @@ echo ""
 echo "Next steps:"
 echo "  1. Change directory to: ~/secure-llm-gcp"
 echo "  1. Verify using: ./verify.sh"
-echo "  2. Copy secure_llm.py here"
+echo "  2. Copy securellm.py here"
 echo "  3. export GEMINI_API_KEY='your-key'"
-echo "  4. Run: ./run_llm.sh"
+echo "  4. Run: python3 securellm.py"

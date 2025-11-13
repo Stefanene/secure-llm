@@ -1,6 +1,6 @@
 # secure-llm
 
-This is the code repository for a CS350S final project at Stanford University written by Stefan Gabriel Ene. This project addresses the need for consumer confidentiality and privacy when prompting cloud-based LLMs. This is acheived through secure enclaves and privacy-preserving techniques like ORAM, PIR, and anonymous computing. More background can be found in the paper report of this methodology and its findings.
+This is the code repository for a CS350S final project at Stanford University written by Stefan Gabriel Ene. This project addresses the need for consumer confidentiality and privacy when prompting cloud-based LLMs. This is acheived through trusted execution environment and privacy-preserving techniques like ORAM, PIR, and anonymous computing. More background can be found in the paper report of this methodology and its findings.
 
 ## How to Use
 Clone this project using:
@@ -15,7 +15,7 @@ python3 -m pip install -r requirements.txt
 ```
 Then, follow the setup guide below to deploy and use the model as currently built.
 
-## Setup Google Cloud Platform (GCP)
+### 1. Setup Google Cloud Platform (GCP)
 Download Google Cloud SDK as follows (for macOS):
 ```
 brew install --cask google-cloud-sdk
@@ -45,7 +45,7 @@ gcloud services enable secretmanager.googleapis.com
 
 Now we can use the VM by running the `setup.sh` script!
 
-<!-- ## Inside the VM
+### 2. Inside the VM
 
 Run the setup script `gcp_setup.sh`.
 
@@ -56,7 +56,12 @@ Set the API key using:
 export GEMINI_API_KEY='your-key-here'
 ```
 
-Finally, run `run_secure_llm.sh`. -->
+Now, you can run the Python script for the SecureLLM client using:
+```
+python3 securellm.py
+```
+Enjoy sending secure LLM queries!
+<!-- Finally, run `run_secure_llm.sh`. -->
 
 ## Acknwledgements
 
