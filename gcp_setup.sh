@@ -54,7 +54,8 @@ pip install \
     google-genai \
     presidio-anonymizer \
     presidio-analyzer \
-    stem
+    stem \
+    flask
 
 pip install 'requests[socks]'
 

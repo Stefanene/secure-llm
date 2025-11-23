@@ -3,7 +3,7 @@
 # Create C3 VM with Intel TDX
 
 # set variables; add personal project ID below
-export PROJECT_ID="secure-llm-477804"
+export PROJECT_ID="YOUR_PROJECT_ID_HERE"
 export VM_NAME="secure-llm-vm"
 export ZONE="us-central1-a"
 export REGION="us-central1"
@@ -16,11 +16,10 @@ gcloud compute networks subnets update default \
 
 # create firewall rules for IAP (Identity-Aware Proxy) SSH access
 gcloud compute firewall-rules create allow-iap-ssh \
-    --allow=tcp:22 \
+    -allow=tcp:8080 \
     --source-ranges=35.235.240.0/20 \
     --network=default \
-    --direction=INGRESS \
-    --quiet 2>/dev/null || echo "Firewall rule already exists"
+    --direction=INGRESS
 
 # create Cloud Router for Cloud NAT
 echo "Creating Cloud Router..."

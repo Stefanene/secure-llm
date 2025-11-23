@@ -3,19 +3,23 @@ import time
 import secrets
 import json
 import numpy as np
+from flask import Flask, request, jsonify
 from google import genai
 from presidio_analyzer import AnalyzerEngine
 from presidio_anonymizer import AnonymizerEngine
 
+app = Flask(__name__)
 
-# >>>>>>>>>>  SecureLLM client <<<<<<<<<<
+# >>>>>>>>>>  PIR techniques helper <<<<<<<<<<
 
 class PIRMethods:
+
     def pad_query(query: str, target_length: int = 500):
         if len(query) < target_length:
             return query + ' ' * (target_length - len(query))
         
         return query[:target_length]
+    
     
     def add_dummy_queries(real_query: str, num_dummies: int = 3):
         dummies = [
@@ -36,30 +40,31 @@ class PIRMethods:
         return all_queries, insert_pos
 
 
-# >>>>>>>>>>  SecureLLM client <<<<<<<<<<
+# >>>>>>>>>>  SecureLLM Server <<<<<<<<<<
 
-class SecureLLMClient:
+class SecureLLMServer:
+
     def __init__(self, api_key: str):
         self.api_key = api_key
         self.query_counter = 0
 
-        print("[CLIENT] Initiliazed successfully")
+        print("[SERVER] Initiliazed successfully")
 
 
     def anonymize_query(self, query: str):
         analyzer = AnalyzerEngine()
         anonymizer = AnonymizerEngine()
 
-        print("[CLIENT] Anonymizing query contents")
+        print("[SERVER] Anonymizing query contents")
         analyzer_results = analyzer.analyze(text=query, language='en')
         anonymized_text = anonymizer.anonymize(text=query, analyzer_results=analyzer_results).text
-        print("[CLIENT] Query PII anonymized successfully")
+        print("[SERVER] Query PII anonymized successfully")
 
         return anonymized_text
     
 
     def query_llm(self, query: str, anonymized: bool, use_oram: bool, use_pir: bool, use_delay: bool, num_dummies: int):
-        print(f"\n[CLIENT] Processing: '{query[:50]}'")
+        print(f"\n[SERVER] Processing: '{query[:50]}'")
 
         client = genai.Client(api_key=self.api_key)
 
@@ -87,44 +92,65 @@ class SecureLLMClient:
                 time.sleep(delay)
 
             responses.append(response)
-            print(f"[CLIENT] Finalized request {i} out of {len(all_queries)}.")
+            print(f"[SERVER] Finalized request {i} out of {len(all_queries)}.")
         
         real_response = responses[real_idx] if real_idx < len(responses) else None
 
-        print("\n[CLIENT] Query complete\n")
+        print("\n[SERVER] Query complete\n")
         return real_response
 
 
-# >>>>>>>>>>  main functions <<<<<<<<<<
+# >>>>>>>>>>  initialize client <<<<<<<<<<
 
-def main():
-    api_key = os.environ.get('GEMINI_API_KEY')
-    if not api_key:
-        print("[ERROR]: GEMINI_API_KEY environment variable not set")
-        print("\tSet it with: export GEMINI_API_KEY='your-key-here'")
-        return
+api_key = os.environ.get('GEMINI_API_KEY')
+if not api_key:
+    raise ValueError("GEMINI_API_KEY environment variable not set")
+
+llm_server = SecureLLMServer(api_key=api_key)
+
+
+# >>>>>>>>>>  API endpoints <<<<<<<<<<
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jasonify({"status": "healthy", "service": "SecureLLM"}), 200
+
+@app.route('/query', methods=['POST'])
+def query_endpoint():
+    try:
+        data = request.get_json()
+
+        if not data or 'query' not in data:
+            return jasonify({"error": "Missing 'query' in request body"}), 400
+        query = data['query']
+        anonymized = data.get('anonymized', False)
+        use_oram = data.get('use_oram', False)
+        use_pir = data.get('use_pir', False)
+        use_delay = data.get('use_delay', False)
+        num_dummies = data.get('num_dummies', 0)
+        
+        start_time = time.perf_counter()
+        response = llm_server.query_llm(
+            query=query,
+            anonymized=False,
+            use_oram=False,
+            use_pir=False,
+            use_delay=False,
+            num_dummies=0
+        )
+        end_time = time.perf_counter()
+        elapsed_time = end_time - start_time
+
+        if response:
+            return jasonify({"response": response.text, "execution_time": elapsed_time}), 200
     
-    client = SecureLLMClient(api_key=api_key)
+    except Exception as e:
+        print(f"[ERROR] {str(e)}")
+        return jasonify({"error": "No response from LLM"}), 500
+    
 
-    query = "What are the differences between Intel SGX and TDX"
-
-    start_time = time.perf_counter()
-    response = client.query_llm(
-        query=query,
-        anonymized=False,
-        use_oram=False,
-        use_pir=False,
-        use_delay=False,
-        num_dummies=0
-    )
-    end_time = time.perf_counter()
-    elapsed_time = end_time - start_time
-
-    if response:
-        text = response.text
-        print(f"Response: {text[:200]}...\n")
-   
-    print(f"[CLIENT] Execution time: {elapsed_time:.6f} seconds")
+# >>>>>>>>>>  main function <<<<<<<<<<
 
 if __name__ == "__main__":
-    main()
+    print("[SERVER] Starting SecureLLM Server on port 8080")
+    app.run(host='0.0.0.0', port=8080, debug=False)

@@ -15,7 +15,7 @@ python3 -m pip install -r requirements.txt
 ```
 Then, follow the setup guide below to deploy and use the system as currently built.
 
-### 1. Setup Google Cloud Platform (GCP)
+### 1. Setup Google Cloud Platform (GCP) locally
 Download Google Cloud SDK as follows (for macOS):
 ```
 brew install --cask google-cloud-sdk
@@ -31,7 +31,7 @@ Create a project on your GCP online interface. Then use that projects's `PROJECT
 gcloud config set project PROJECT_ID
 ```
 
-And check the list of available project using:
+Optionally, check the list of available project as a sanity check using:
 ```
 gcloud projects list
 ```
@@ -48,19 +48,45 @@ Now we can use the VM by running the `setup.sh` script, which will automatically
 ### 2. Inside the VM
 Run the setup script `gcp_setup.sh`.
 
-Then add the client code located in `securellm.py`.
+Then add the server code located in `securellm_server.py`.
 
 Set the API key using:
 ```
 export GEMINI_API_KEY='your-key-here'
 ```
 
-Now, you can run the Python script for the SecureLLM client using:
+Now, you can run the Python script for the SecureLLM server using the provided execution script `run_server.sh`:
 ```
-python3 securellm.py
+chmod +x run_server.sh
+./run_server.sh
 ```
-Enjoy sending secure LLM queries!
-<!-- Finally, run `run_secure_llm.sh`. -->
+
+### 3. Back in the local terminal
+Here, let's setup the client's endpoints. Run the `run_user.sh` script to setup the tunnel connetion on port 8080 using:
+```
+bash run_user.sh
+```
+Then, in another terminal we can run the python user code to communicate to the SecureLLM server:
+```
+python3.10 local_client.py
+```
+
+All done, we can enjoy sending secure LLM queries now!
+
+### 4. Stopping the service
+It is great practice to stop both listening port and the GCP confidential VM. Use CTRL+C/CMD+C to kill the tunnel connection process as well as the following command to stop the VM:
+```
+gcloud compute instances stop secure-llm-vm --zone=us-central1-a 
+```
+
+You can restart the VM using:
+```
+gcloud compute instances stop secure-llm-vm --zone=us-central1-a 
+```
+Then, connect to the VM to reuse this system using:
+```
+gcloud compute ssh secure-llm-vm --zone=us-central1-a --tunnel-through-iap
+```
 
 ## Acknwledgements
 
