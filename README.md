@@ -1,6 +1,6 @@
 # secure-llm
 
-This is the code repository for a CS350S final project at Stanford University written by Stefan Gabriel Ene. This project addresses the need for consumer confidentiality and privacy when prompting cloud-based LLMs. This is acheived through trusted execution environment and privacy-preserving techniques like ORAM, PIR, and anonymous computing. More background can be found in the paper report of this methodology and its findings.
+This is the code repository for a CS350S final project at Stanford University written by Stefan Gabriel Ene. This project addresses the need for consumer confidentiality and privacy when prompting cloud-based LLMs. This is acheived through trusted execution environment and privacy-preserving techniques like ORAM, PIR, and private network access. More background can be found in the paper report of this methodology and its findings.
 
 ## How to Use
 Clone this project using:

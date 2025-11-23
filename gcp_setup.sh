@@ -21,26 +21,21 @@ echo "Running on: $CC_TYPE"
 echo ""
 
 # update system if needed
-echo "[1/4] Updating system..."
+echo "[1/3] Updating system..."
 sudo apt update
 sudo apt upgrade -y
 
 # install dependencies
-echo "[2/4] Installing dependencies..."
+echo "[2/3] Installing dependencies..."
 sudo apt install -y \
     python3 \
     python3-pip \
     python3-venv \
-    tor \
     curl \
     wget
 
-# configure Tor
-echo "[3/4] Configuring Tor..."
-# TODO
-
 # setup Python environoment
-echo "[4/4] Setting up Python environment..."
+echo "[3/3] Setting up Python environment..."
 
 mkdir -p ~/secure-llm-gcp
 cd ~/secure-llm-gcp

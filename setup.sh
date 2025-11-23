@@ -6,15 +6,22 @@
 export PROJECT_ID="ADD_PROJECT_ID_HERE"
 export VM_NAME="secure-llm-vm"
 export ZONE="us-central1-a"
+export REGION="us-central1"
 export MACHINE_TYPE="c3-standard-4"
 
-# create firewall rules
-gcloud compute firewall-rules create allow-ssh \
+# enable Google's private network
+gcloud compute networks subnets update default \
+    --region=$REGION \
+    --enable-private-ip-google-access
+
+# create firewall rules for IAP (Identity-Aware Proxy) SSH access
+gcloud compute firewall-rules create allow-iap-ssh \
     --allow=tcp:22 \
-    --source-ranges=0.0.0.0/0
+    --source-ranges=35.235.240.0/20 \
+    --network=default \
+    --direction=INGRESS
 
-
-# create VM
+# create VM with no external IP
 gcloud compute instances create $VM_NAME \
     --project=$PROJECT_ID \
     --zone=$ZONE \
@@ -24,10 +31,16 @@ gcloud compute instances create $VM_NAME \
     --confidential-compute-type=TDX \
     --maintenance-policy=TERMINATE \
     --boot-disk-size=50GB \
-    --tags=allow-ssh
+    --no-address \
+    --tags=allow-iap-ssh
+
+echo "VM created with private network access only"
+echo "Connecting via Identity-Aware Proxy..."
 
 # connect to VM
-gcloud compute ssh $VM_NAME --zone=$ZONE
+gcloud compute ssh $VM_NAME \
+    --zone=$ZONE \
+    --tunnel-through-iap
 
 # # ================================================
 # # Commands for future uses:
