@@ -26,6 +26,7 @@ sudo apt update
 sudo apt upgrade -y
 
 # install dependencies
+echo ""
 echo "[2/3] Installing dependencies..."
 sudo apt install -y \
     python3 \
@@ -35,6 +36,7 @@ sudo apt install -y \
     wget
 
 # setup Python environoment
+echo ""
 echo "[3/3] Setting up Python environment..."
 
 mkdir -p ~/secure-llm-gcp
@@ -56,11 +58,11 @@ pip install \
 
 pip install 'requests[socks]'
 
+echo ""
 echo ">>>>>>>>>>  Setup Complete! <<<<<<<<<<"
 echo ""
 echo "Next steps:"
 echo "  1. Change directory to: ~/secure-llm-gcp"
-echo "  1. Verify using: ./verify.sh"
 echo "  2. Copy securellm.py here"
 echo "  3. export GEMINI_API_KEY='your-key'"
 echo "  4. Run: python3 securellm.py"

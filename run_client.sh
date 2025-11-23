@@ -11,4 +11,4 @@ fi
 cd ~/secure-llm-gcp
 source venv/bin/activate
 
-python3 secure_llm_client.py
+python3 securellm.py

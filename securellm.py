@@ -1,5 +1,6 @@
 import os
 import time
+import time
 import json
 import numpy as np
 from google import genai
@@ -60,18 +61,22 @@ def main():
 
     query = "What are the differences between Intel SGX and TDX"
 
+    start_time = time.perf_counter()
     response = client.query_llm(
         query=query,
-        anonymized=True,
-        use_oram=True,
-        use_pir=True,
+        anonymized=False,
+        use_oram=False,
+        use_pir=False,
         num_dummies=0
     )
+    end_time = time.perf_counter()
+    elapsed_time = end_time - start_time
 
     if response:
         text = response.text
         print(f"Response: {text[:200]}...\n")
-
+   
+    print(f"[CLIENT] Execution time: {elapsed_time:.6f} seconds")
 
 if __name__ == "__main__":
     main()
