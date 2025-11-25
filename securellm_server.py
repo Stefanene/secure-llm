@@ -1,3 +1,5 @@
+# SecureLLM server on Confidential VM
+
 import os
 import time
 import secrets
@@ -7,6 +9,7 @@ from flask import Flask, request, jsonify
 from dataclasses import dataclass
 from google import genai
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding as sym_padding
 from presidio_analyzer import AnalyzerEngine
 from presidio_anonymizer import AnonymizerEngine
@@ -61,8 +64,8 @@ class SimpleORAM:
         
         self.position_map = {}
         self.storage = {}
-        self.stach = []
-        print(f"[SERVER] ORAM Initialized: {num_blocks} blocks, tree height {self.tree_height}")
+        self.stash = []
+        print(f"[SERVER] ORAM initialized with: {num_blocks} blocks, tree height {self.tree_height}")
 
     def _assign_random_leaf(self):
         return secrets.randbelow(self.num_leaves)
@@ -119,11 +122,36 @@ class SecureLLMServer:
         self.api_key = api_key
 
         self.query_counter = 0
-        self.oram = SimpleORAM(num_blocks=128, block_size=2048)
 
         self.memory_key = secrets.token_bytes(32)
 
         print("[SERVER] Initiliazed successfully")
+        self.oram = SimpleORAM(num_blocks=128, block_size=2048)
+
+    def _encrypt_memory(self, data: bytes):
+        iv = secrets.token_bytes(16)
+        cipher = Cipher(algorithms.AES(self.memory_key), modes.CBC(iv), backend=default_backend())
+        encryptor = cipher.encryptor()
+
+        padder = sym_padding.PKCS7(128).padder()
+        padded_data = padder.update(data) + padder.finalize()
+
+        ciphertext = encryptor.update(padded_data) + encryptor.finalize()
+        return iv + ciphertext
+    
+    def _decrypt_memory(self, encrypted_data: bytes):
+        iv = encrypted_data[:16]
+        ciphertext = encrypted_data[16:]
+
+        cipher = Cipher(algorithms.AES(self.memory_key), modes.CBC(iv), backend=default_backend())
+        decryptor = cipher.decryptor()
+
+        padded_data = decryptor.update(ciphertext) + decryptor.finalize()
+
+        unpadder = sym_padding.PKCS7(128).unpadder()
+        data = unpadder.update(padded_data) + unpadder.finalize()
+
+        return data
 
     def anonymize_query(self, query: str):
         analyzer = AnalyzerEngine()
@@ -153,6 +181,14 @@ class SecureLLMServer:
             all_queries = [query]
             real_idx = 0
 
+        if use_oram:
+            query_id = self.query_counter
+            self.query_counter += 1
+        
+            encrypted_query = self._encrypt_memory(query.encode('utf-8'))
+            self.oram.oblivious_write(query_id, encrypted_query)
+            print(f"[SERVER] Query stored in ORAM (ID: {query_id})")
+
         responses = []
         for i, q in enumerate(all_queries):
             response = client.models.generate_content(
@@ -165,9 +201,16 @@ class SecureLLMServer:
                 time.sleep(delay)
 
             responses.append(response)
-            print(f"[SERVER] Finalized request {i} out of {len(all_queries)}.")
+            print(f"[SERVER] Finalized request {i+1} out of {len(all_queries)}.")
         
         real_response = responses[real_idx] if real_idx < len(responses) else None
+
+        if use_oram:
+            response_str = real_response.text
+            encrypted_response = self._encrypt_memory(response_str.encode('utf-8'))
+            self.oram.oblivious_write(query_id+1000, encrypted_response)
+            print(f"[SERVER] Response stored in ORAM (ID: {query_id+1000})")
+
 
         print("\n[SERVER] Query complete\n")
         return real_response
@@ -196,20 +239,20 @@ def query_endpoint():
         if not data or 'query' not in data:
             return jsonify({"error": "Missing 'query' in request body"}), 400
         query = data['query']
-        anonymized = data.get('anonymized', False)
-        use_oram = data.get('use_oram', False)
-        use_pir = data.get('use_pir', False)
-        use_delay = data.get('use_delay', False)
-        num_dummies = data.get('num_dummies', 0)
+        anonymized = data.get('anonymized')
+        use_oram = data.get('use_oram')
+        use_pir = data.get('use_pir')
+        use_delay = data.get('use_delay')
+        num_dummies = data.get('num_dummies')
         
         start_time = time.perf_counter()
         response = llm_server.query_llm(
             query=query,
-            anonymized=False,
-            use_oram=False,
-            use_pir=False,
-            use_delay=False,
-            num_dummies=0
+            anonymized=anonymized,
+            use_oram=use_oram,
+            use_pir=use_pir,
+            use_delay=use_delay,
+            num_dummies=num_dummies
         )
         end_time = time.perf_counter()
         elapsed_time = end_time - start_time
