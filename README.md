@@ -79,13 +79,14 @@ It is great practice to stop both listening port and the GCP confidential VM. Us
 gcloud compute instances stop secure-llm-vm --zone=us-central1-a 
 ```
 
-You can restart the VM using:
-```
-gcloud compute instances stop secure-llm-vm --zone=us-central1-a 
-```
-Then, connect to the VM to reuse this system using:
+### 5. Re-running the process
+Once the VM was exitted, you can reconnect to the VM to reuse this system using:
 ```
 gcloud compute ssh secure-llm-vm --zone=us-central1-a --tunnel-through-iap
+```
+If needed, you can restart the VM using:
+```
+gcloud compute instances restart secure-llm-vm --zone=us-central1-a 
 ```
 
 ## Acknwledgements

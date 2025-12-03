@@ -86,10 +86,10 @@ def main():
         {
             "query": "What are the differences between Intel SGX and TDX?",
             "anonymized": False,
-            "use_oram": True,
-            "use_pir": True,
+            "use_oram": False,
+            "use_pir": False,
             "use_delay": False,
-            "num_dummies": 3
+            "num_dummies": 0
         }
     ]
     
